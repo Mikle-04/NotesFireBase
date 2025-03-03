@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "433880448113",
+    "project_id": "syncnotes-bdbba",
+    "storage_bucket": "syncnotes-bdbba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433880448113:android:041d4510c98d0116816fd0",
+        "android_client_info": {
+          "package_name": "com.example.notes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW8M6USzG1uAZCJj51zsxRQUxYjg_tf84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
