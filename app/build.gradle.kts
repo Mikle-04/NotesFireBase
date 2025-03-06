@@ -66,6 +66,7 @@ dependencies {
 
     // Coroutines
     implementation (libs.kotlinx.coroutines.android)
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Navigation Component
     implementation (libs.androidx.navigation.fragment.ktx)
