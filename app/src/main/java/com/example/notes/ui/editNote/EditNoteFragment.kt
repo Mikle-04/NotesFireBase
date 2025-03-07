@@ -1,5 +1,6 @@
 package com.example.notes.ui.editNote
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,6 +18,7 @@ import com.example.notes.R
 import com.example.notes.data.db.AppDatabase
 import com.example.notes.data.db.dao.NoteDao
 import com.example.notes.data.db.models.Note
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
@@ -120,6 +122,59 @@ class EditNoteFragment : Fragment() {
                         deleteNote(note)
                     }
                 }
+            }
+        }
+        // Кнопка "Назад"
+        view.findViewById<MaterialButton>(R.id.back_button).setOnClickListener {
+            val title = titleEdit.text.toString()
+            val content = contentEdit.text.toString()
+            val category = spinner.selectedItem.toString()
+
+            if (noteId != -1) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val existingNote = noteDao.getNoteById(noteId)
+                    if (existingNote != null && (existingNote.title != title || existingNote.content != content || existingNote.category != category)) {
+                        launch(Dispatchers.Main) {
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Сохранить изменения?")
+                                .setMessage("Вы внесли изменения. Сохранить их перед выходом?")
+                                .setPositiveButton("Да") { _, _ ->
+                                    val updatedNote = existingNote.copy(
+                                        title = title,
+                                        content = content,
+                                        category = category,
+                                        timestamp = System.currentTimeMillis(),
+                                        synced = false
+                                    )
+                                    saveNote(updatedNote)
+                                }
+                                .setNegativeButton("Нет") { _, _ ->
+                                    findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
+                                }
+                                .setNeutralButton("Отмена", null)
+                                .show()
+                        }
+                    } else {
+                        launch(Dispatchers.Main) {
+                            findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
+                        }
+                    }
+                }
+            } else if (title.isNotEmpty() || content.isNotEmpty()) {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Сохранить новую заметку?")
+                    .setMessage("Вы начали создавать заметку. Сохранить её перед выходом?")
+                    .setPositiveButton("Да") { _, _ ->
+                        val newNote = Note(title = title, content = content, category = category)
+                        saveNote(newNote)
+                    }
+                    .setNegativeButton("Нет") { _, _ ->
+                        findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
+                    }
+                    .setNeutralButton("Отмена", null)
+                    .show()
+            } else {
+                findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
             }
         }
     }

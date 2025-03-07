@@ -15,6 +15,9 @@ import com.example.notes.R
 import com.example.notes.data.db.AppDatabase
 import com.example.notes.data.db.dao.NoteDao
 import com.example.notes.data.db.models.Note
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -31,6 +34,7 @@ class MainFragment : Fragment() {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private var firestoreListener: ListenerRegistration? = null
+    private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,12 +50,20 @@ class MainFragment : Fragment() {
         val db = AppDatabase.getDatabase(requireContext())
         noteDao = db.noteDao()
 
+        // Настройка Google Sign-In для выхода
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+
         // Настройка RecyclerView
         val recyclerView = view.findViewById<RecyclerView>(R.id.notes_recycler_view)
         adapter = NoteAdapter(emptyList())
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
+        // Наблюдение за локальными заметками
         noteDao.getAllNotes().observe(viewLifecycleOwner, Observer { notes ->
             Log.d("MainFragment", "Local notes updated: ${notes?.size ?: "null"}")
             adapter.updateNotes(notes?.distinctBy { it.firestoreId } ?: emptyList()) // Убираем дубли по firestoreId
@@ -59,6 +71,10 @@ class MainFragment : Fragment() {
 
         view.findViewById<View>(R.id.add_button).setOnClickListener {
             findNavController().navigate(R.id.action_mainFragment_to_editNoteFragment)
+        }
+        // Кнопка выхода
+        view.findViewById<View>(R.id.logout_button).setOnClickListener {
+            signOut()
         }
 
         syncWithFirestore()
@@ -133,6 +149,21 @@ class MainFragment : Fragment() {
                 .set(noteMap)
                 .await()
             noteDao.update(note.copy(synced = true))
+        }
+    }
+    private fun signOut() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                // Выход из Firebase
+                auth.signOut()
+                // Выход из Google
+                googleSignInClient.signOut().await()
+                // Переход на экран входа
+                findNavController().navigate(R.id.action_mainFragment_to_loginFragment)
+                Toast.makeText(requireContext(), "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Ошибка выхода: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
