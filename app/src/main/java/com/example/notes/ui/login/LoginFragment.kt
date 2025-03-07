@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -15,14 +16,22 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 class LoginFragment : Fragment() {
+
     private lateinit var googleSignInClient: GoogleSignInClient
     private val auth = FirebaseAuth.getInstance()
+    private lateinit var loginProgress: ProgressBar
+
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -30,9 +39,7 @@ class LoginFragment : Fragment() {
                 val account = task.getResult(ApiException::class.java)!!
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
-                activity?.let {
-                    Toast.makeText(it, "Ошибка Google Sign-In: ${e.statusCode}", Toast.LENGTH_SHORT).show()
-                }
+                Toast.makeText(requireContext(), "Ошибка Google Sign-In: ${e.statusCode}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -41,12 +48,13 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        loginProgress = view.findViewById(R.id.login_progress)
 
         // Настройка Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -55,22 +63,29 @@ class LoginFragment : Fragment() {
             .build()
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
+        // Проверка авторизации
+        if (auth.currentUser != null) {
+            findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            return
+        }
+
         // Кнопка Google Sign-In
-        view.findViewById<View>(R.id.google_sign_in_button).setOnClickListener {
+        view.findViewById<MaterialButton>(R.id.google_sign_in_button).setOnClickListener {
             googleSignInLauncher.launch(googleSignInClient.signInIntent)
         }
 
         // Кнопка Email/Password
-        view.findViewById<View>(R.id.email_sign_in_button).setOnClickListener {
+        view.findViewById<MaterialButton>(R.id.email_sign_in_button).setOnClickListener {
             showEmailPasswordDialog()
         }
 
-        // Проверка авторизации
-        if (auth.currentUser != null) {
-            findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-        }
-
+        // Анимации появления
+        view.findViewById<View>(R.id.logo_image).animate().alpha(1f).setDuration(500).start()
+        view.findViewById<View>(R.id.title).animate().alpha(1f).setDuration(500).setStartDelay(200).start()
+        view.findViewById<View>(R.id.google_sign_in_button).animate().alpha(1f).setDuration(500).setStartDelay(400).start()
+        view.findViewById<View>(R.id.email_sign_in_button).animate().alpha(1f).setDuration(500).setStartDelay(600).start()
     }
+
     private fun showEmailPasswordDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_email_password, null)
         val emailEditText = dialogView.findViewById<EditText>(R.id.email_edit_text)
@@ -102,45 +117,48 @@ class LoginFragment : Fragment() {
     }
 
     private fun registerWithEmail(email: String, password: String) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(requireActivity()) { task ->
-                activity?.let { // Безопасный доступ к активности
-                    if (task.isSuccessful) {
-                        Toast.makeText(it, "Регистрация успешна", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-                    } else {
-                        Toast.makeText(it, "Ошибка регистрации: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                loginProgress.visibility = View.VISIBLE
+                auth.createUserWithEmailAndPassword(email, password).await()
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Регистрация успешна", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            } catch (e: Exception) {
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Ошибка регистрации: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
     }
 
     private fun signInWithEmail(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(requireActivity()) { task ->
-                activity?.let { // Безопасный доступ к активности
-                    if (task.isSuccessful) {
-                        Toast.makeText(it, "Вход успешен", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-                    } else {
-                        Toast.makeText(it, "Ошибка: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                loginProgress.visibility = View.VISIBLE
+                auth.signInWithEmailAndPassword(email, password).await()
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Вход успешен", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            } catch (e: Exception) {
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
     }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(requireActivity()) { task ->
-                activity?.let { // Безопасный доступ к активности
-                    if (task.isSuccessful) {
-                        Toast.makeText(it, "Вход успешен", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-                    } else {
-                        Toast.makeText(it, "Ошибка аутентификации", Toast.LENGTH_SHORT).show()
-                    }
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                loginProgress.visibility = View.VISIBLE
+                auth.signInWithCredential(credential).await()
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Вход успешен", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            } catch (e: Exception) {
+                loginProgress.visibility = View.GONE
+                Toast.makeText(requireContext(), "Ошибка аутентификации: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
     }
 }
