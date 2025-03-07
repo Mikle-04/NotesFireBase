@@ -98,7 +98,8 @@ style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        style="@style/CustomTextInputLayout"
+        app:endIconTint="?attr/colorOnSurface">
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/category_spinner"
             android:layout_width="match_parent"

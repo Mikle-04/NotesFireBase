@@ -15,4 +15,10 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <style name="CustomTextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="endIconTint">?attr/colorOnSurface</item>
+        <item name="endIconDrawable">@drawable/ic_custom_dropdown</item> <!-- Кастомная стрелка -->
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+    </style>
 </resources>
