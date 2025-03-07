@@ -36,6 +36,7 @@ class EditNoteFragment : Fragment() {
     private lateinit var contentEdit: EditText
     private lateinit var spinner: Spinner
     private lateinit var saveProgress: ProgressBar
+    private lateinit var deleteButton: View
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +54,7 @@ class EditNoteFragment : Fragment() {
         contentEdit = view.findViewById(R.id.content_edit)
         spinner = view.findViewById(R.id.category_spinner)
         saveProgress = view.findViewById(R.id.save_progress)
+        deleteButton = view.findViewById(R.id.delete_button)
 
         val categories = arrayOf("Работа", "Личное", "Идеи", "Другое")
         spinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categories)
@@ -66,7 +68,10 @@ class EditNoteFragment : Fragment() {
                         titleEdit.setText(note.title)
                         contentEdit.setText(note.content)
                         spinner.setSelection(categories.indexOf(note.category))
+                        deleteButton.visibility = View.VISIBLE
                     }
+                }else{
+                    deleteButton.visibility = View.GONE
                 }
             }
         }
@@ -105,6 +110,16 @@ class EditNoteFragment : Fragment() {
                 }
             } else {
                 Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_SHORT).show()
+            }
+        }
+        deleteButton.setOnClickListener {
+            if (noteId != -1) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val note = noteDao.getNoteById(noteId)
+                    if (note != null) {
+                        deleteNote(note)
+                    }
+                }
             }
         }
     }
@@ -157,6 +172,39 @@ class EditNoteFragment : Fragment() {
                 launch(Dispatchers.Main) {
                     saveProgress.visibility = View.GONE
                     Toast.makeText(requireContext(), "Ошибка сохранения: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+    }
+    private fun deleteNote(note: Note) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                launch(Dispatchers.Main) {
+                    saveProgress.visibility = View.VISIBLE
+                }
+
+                val userId = auth.currentUser?.uid ?: return@launch
+                if (note.firestoreId.isNotBlank()) {
+                    firestore.collection("users")
+                        .document(userId)
+                        .collection("notes")
+                        .document(note.firestoreId)
+                        .delete()
+                        .await()
+                }
+
+                noteDao.delete(note)
+
+                launch(Dispatchers.Main) {
+                    saveProgress.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Заметка удалена", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
+                }
+            } catch (e: Exception) {
+                launch(Dispatchers.Main) {
+                    saveProgress.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Ошибка удаления: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
