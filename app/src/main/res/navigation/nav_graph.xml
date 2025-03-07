@@ -5,22 +5,22 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginFragment">
 
-                        <fragment
+    <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.notes.ui.login.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" >
+        tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_loginFragment_to_mainFragment"
             app:destination="@id/mainFragment"
             app:popUpTo="@id/loginFragment"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.notes.ui.main.MainFragment"
         android:label="fragment_main"
-        tools:layout="@layout/fragment_main" >
+        tools:layout="@layout/fragment_main">
         <action
             android:id="@+id/action_mainFragment_to_editNoteFragment"
             app:destination="@id/editNoteFragment" />
@@ -29,7 +29,11 @@
         android:id="@+id/editNoteFragment"
         android:name="com.example.notes.ui.editNote.EditNoteFragment"
         android:label="fragment_edit_note"
-        tools:layout="@layout/fragment_edit_note" >
+        tools:layout="@layout/fragment_edit_note">
+        <argument
+            android:name="noteId"
+            app:argType="integer"
+            android:defaultValue="-1" />
         <action
             android:id="@+id/action_editNoteFragment_to_mainFragment"
             app:destination="@id/mainFragment" />

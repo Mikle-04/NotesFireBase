@@ -28,4 +28,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes WHERE firestoreId = :firestoreId LIMIT 1")
     suspend fun getNoteByFirestoreId(firestoreId: String): Note?
+
+    @Query("SELECT * FROM notes WHERE id = :id LIMIT 1")
+    suspend fun getNoteById(id: Int): Note?
 }
