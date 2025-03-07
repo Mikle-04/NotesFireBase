@@ -24,6 +24,9 @@
         <action
             android:id="@+id/action_mainFragment_to_editNoteFragment"
             app:destination="@id/editNoteFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
     </fragment>
     <fragment
         android:id="@+id/editNoteFragment"
