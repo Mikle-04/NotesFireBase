@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.safe.args)
 }
 
 android {
@@ -66,6 +67,7 @@ dependencies {
 
     // Coroutines
     implementation (libs.kotlinx.coroutines.android)
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Navigation Component
     implementation (libs.androidx.navigation.fragment.ktx)
