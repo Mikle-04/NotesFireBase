@@ -19,6 +19,7 @@ import com.example.notes.data.db.AppDatabase
 import com.example.notes.data.db.dao.NoteDao
 import com.example.notes.data.db.models.Note
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
@@ -54,12 +55,12 @@ class EditNoteFragment : Fragment() {
 
         titleEdit = view.findViewById(R.id.title_edit)
         contentEdit = view.findViewById(R.id.content_edit)
-        spinner = view.findViewById(R.id.category_spinner)
         saveProgress = view.findViewById(R.id.save_progress)
         deleteButton = view.findViewById(R.id.delete_button)
 
         val categories = arrayOf("Работа", "Личное", "Идеи", "Другое")
-        spinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categories)
+        val spinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.category_spinner)
+        spinner.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories))
 
         val noteId = args.noteId
         if (noteId != -1) {
@@ -81,7 +82,7 @@ class EditNoteFragment : Fragment() {
         view.findViewById<View>(R.id.save_button).setOnClickListener {
             val title = titleEdit.text.toString()
             val content = contentEdit.text.toString()
-            val category = spinner.selectedItem.toString()
+            val category = spinner.text.toString()
 
             if (title.isNotEmpty() && content.isNotEmpty()) {
                 if (noteId != -1) {
@@ -128,7 +129,7 @@ class EditNoteFragment : Fragment() {
         view.findViewById<MaterialButton>(R.id.back_button).setOnClickListener {
             val title = titleEdit.text.toString()
             val content = contentEdit.text.toString()
-            val category = spinner.selectedItem.toString()
+            val category = spinner.text.toString()
 
             if (noteId != -1) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -177,6 +178,24 @@ class EditNoteFragment : Fragment() {
                 findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
             }
         }
+        // Анимации появления
+        view.findViewById<View>(R.id.logo_image).alpha = 0f
+        view.findViewById<View>(R.id.title_text).alpha = 0f
+        view.findViewById<View>(R.id.back_button).alpha = 0f
+        view.findViewById<View>(R.id.title_input_layout).alpha = 0f
+        view.findViewById<View>(R.id.content_input_layout).alpha = 0f
+        view.findViewById<View>(R.id.category_spinner).alpha = 0f
+        view.findViewById<View>(R.id.save_button).alpha = 0f
+        view.findViewById<View>(R.id.delete_button).alpha = 0f
+
+        view.findViewById<View>(R.id.logo_image).animate().alpha(1f).setDuration(500).start()
+        view.findViewById<View>(R.id.title_text).animate().alpha(1f).setDuration(500).setStartDelay(200).start()
+        view.findViewById<View>(R.id.back_button).animate().alpha(1f).setDuration(500).setStartDelay(400).start()
+        view.findViewById<View>(R.id.title_input_layout).animate().alpha(1f).setDuration(500).setStartDelay(600).start()
+        view.findViewById<View>(R.id.content_input_layout).animate().alpha(1f).setDuration(500).setStartDelay(800).start()
+        view.findViewById<View>(R.id.category_spinner).animate().alpha(1f).setDuration(500).setStartDelay(1000).start()
+        view.findViewById<View>(R.id.save_button).animate().alpha(1f).setDuration(500).setStartDelay(1200).start()
+        view.findViewById<View>(R.id.delete_button).animate().alpha(1f).setDuration(500).setStartDelay(1400).start()
     }
 
     private fun saveNote(note: Note) {

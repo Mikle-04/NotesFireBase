@@ -12,7 +12,8 @@
         android:id="@+id/logo_image"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/ic_notes_logo"
+        android:backgroundTint="@android:color/transparent"
+        android:src="@drawable/ic_note_logo"
         android:alpha="0"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,7 +26,8 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Вход в SyncNotes"
+        android:text="Вход"
+        android:background="@android:color/transparent"
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
@@ -49,6 +51,7 @@
         android:layout_marginTop="48dp"
         app:cornerRadius="8dp"
         app:icon="@drawable/ic_google"
+        app:iconTint="@null"
         app:iconGravity="start"
         style="@style/Widget.Material3.Button.OutlinedButton" />
 
@@ -66,6 +69,7 @@
         android:layout_marginTop="16dp"
         app:cornerRadius="8dp"
         app:icon="@android:drawable/ic_dialog_email"
+        app:iconTint="@null"
         app:iconGravity="start"
         style="@style/Widget.Material3.Button.ElevatedButton" />
 
@@ -75,6 +79,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:background="@android:color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

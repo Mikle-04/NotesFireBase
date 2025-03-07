@@ -18,6 +18,7 @@ import com.example.notes.data.db.models.Note
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -74,8 +75,24 @@ class MainFragment : Fragment() {
         }
         // Кнопка выхода
         view.findViewById<View>(R.id.logout_button).setOnClickListener {
-            signOut()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Выход")
+                .setMessage("Вы уверены, что хотите выйти из аккаунта?")
+                .setPositiveButton("Да") { _, _ ->
+                    signOut()
+                }
+                .setNegativeButton("Нет", null)
+                .show()
         }
+        view.findViewById<View>(R.id.title_text).alpha = 0f
+        view.findViewById<View>(R.id.logout_button).alpha = 0f
+        view.findViewById<View>(R.id.notes_recycler_view).alpha = 0f
+        view.findViewById<View>(R.id.add_button).alpha = 0f
+
+        view.findViewById<View>(R.id.title_text).animate().alpha(1f).setDuration(500).start()
+        view.findViewById<View>(R.id.logout_button).animate().alpha(1f).setDuration(500).setStartDelay(200).start()
+        view.findViewById<View>(R.id.notes_recycler_view).animate().alpha(1f).setDuration(500).setStartDelay(400).start()
+        view.findViewById<View>(R.id.add_button).animate().alpha(1f).setDuration(500).setStartDelay(600).start()
 
         syncWithFirestore()
     }
