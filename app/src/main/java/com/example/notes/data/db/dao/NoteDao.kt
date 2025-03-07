@@ -25,4 +25,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes WHERE synced = 0")
     suspend fun getUnsyncedNotes(): List<Note>
+
+    @Query("SELECT * FROM notes WHERE firestoreId = :firestoreId LIMIT 1")
+    suspend fun getNoteByFirestoreId(firestoreId: String): Note?
 }

@@ -1,6 +1,7 @@
 package com.example.notes.ui.editNote
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,16 +39,13 @@ class EditNoteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Инициализация Room
         noteDao = AppDatabase.getDatabase(requireContext()).noteDao()
 
-        // Настройка Spinner с категориями
         val spinner = view.findViewById<Spinner>(R.id.category_spinner)
         val categories = arrayOf("Работа", "Личное", "Идеи", "Другое")
         spinner.adapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categories)
 
-        // Кнопка сохранения
         view.findViewById<View>(R.id.save_button).setOnClickListener {
             val title = view.findViewById<EditText>(R.id.title_edit).text.toString()
             val content = view.findViewById<EditText>(R.id.content_edit).text.toString()
@@ -63,31 +61,34 @@ class EditNoteFragment : Fragment() {
     private fun saveNote(note: Note) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                //Сохранение в room
-                noteDao.insert(note)
-
-                //Отправка в Firestore
                 val userId = auth.currentUser?.uid ?: return@launch
+                val firestoreRef = firestore.collection("users")
+                    .document(userId)
+                    .collection("notes")
+                    .document()
+                val firestoreId = firestoreRef.id
+
+                // Создаём заметку с firestoreId сразу
+                val noteWithFirestoreId = note.copy(firestoreId = firestoreId)
+                // Сохранение в Room
+                noteDao.insert(noteWithFirestoreId)
+
+                // Отправка в Firestore
                 val noteMap = hashMapOf(
-                    "id" to note.id,
+                    "id" to noteWithFirestoreId.id,
+                    "firestoreId" to firestoreId,
                     "title" to note.title,
                     "content" to note.content,
                     "category" to note.category,
                     "timestamp" to note.timestamp,
                     "synced" to true
                 )
-                firestore.collection("users")
-                    .document(userId)
-                    .collection("notes")
-                    .document(note.id.toString())
-                    .set(noteMap)
-                    .await()
+                Log.d("EditNoteFragment", "Firestore path: ${firestoreRef.path}")
+                firestoreRef.set(noteMap).await()
 
-                // Обновление флага synced в Room
-                val syncedNote = note.copy(synced = true)
-                noteDao.update(syncedNote)
+                // Обновление флага synced
+                noteDao.update(noteWithFirestoreId.copy(synced = true))
 
-                // Переход на MainFragment
                 launch(Dispatchers.Main) {
                     findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
                 }
@@ -99,6 +100,7 @@ class EditNoteFragment : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
+                Log.e("EditNoteFragment", "Save failed: ${e.message}")
             }
         }
     }

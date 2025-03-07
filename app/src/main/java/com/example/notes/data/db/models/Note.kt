@@ -7,7 +7,8 @@ import com.google.firebase.firestore.PropertyName
 @Entity(tableName = "notes")
 data class Note(
     @PrimaryKey(autoGenerate = true)
-    @PropertyName("id") val id: Int = 0,
+    @PropertyName("id") val id: Int = 0, // Локальный ID для Room
+    @PropertyName("firestoreId") var firestoreId: String = "", // Уникальный ID для Firestore
     @PropertyName("title") val title: String = "",
     @PropertyName("content") val content: String = "",
     @PropertyName("category") val category: String = "",
