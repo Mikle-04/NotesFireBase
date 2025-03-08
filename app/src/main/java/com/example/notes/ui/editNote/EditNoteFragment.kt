@@ -60,7 +60,13 @@ class EditNoteFragment : Fragment() {
 
         val categories = arrayOf("Работа", "Личное", "Идеи", "Другое")
         val spinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.category_spinner)
-        spinner.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories))
+        spinner.setAdapter(
+            ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                categories
+            )
+        )
 
         val noteId = args.noteId
         if (noteId != -1) {
@@ -68,16 +74,24 @@ class EditNoteFragment : Fragment() {
                 val note = noteDao.getNoteById(noteId)
                 if (note != null) {
                     launch(Dispatchers.Main) {
-                        titleEdit.setText(note.title)
-                        contentEdit.setText(note.content)
-                        spinner.setSelection(categories.indexOf(note.category))
-                        deleteButton.visibility = View.VISIBLE
+                        // Принудительно преобразуем в строку, убирая возможные спаны
+                        titleEdit.setText(note.title.toString())
+                        contentEdit.setText(note.content.toString())
+                        spinner.setText(note.category.toString(), false)
                     }
-                }else{
-                    deleteButton.visibility = View.GONE
+                } else {
+                    launch(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "Заметка не найдена", Toast.LENGTH_SHORT)
+                            .show()
+                        findNavController().popBackStack() // Возвращаемся назад, если заметка не найдена
+                    }
                 }
             }
+        } else {
+            view.findViewById<View>(R.id.delete_button).visibility = View.GONE
         }
+
+
 
         view.findViewById<View>(R.id.save_button).setOnClickListener {
             val title = titleEdit.text.toString()
@@ -102,7 +116,11 @@ class EditNoteFragment : Fragment() {
                             } else {
                                 launch(Dispatchers.Main) {
                                     findNavController().navigate(R.id.action_editNoteFragment_to_mainFragment)
-                                    Toast.makeText(requireContext(), "Изменений нет", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Изменений нет",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         }
@@ -189,13 +207,20 @@ class EditNoteFragment : Fragment() {
         view.findViewById<View>(R.id.delete_button).alpha = 0f
 
         view.findViewById<View>(R.id.logo_image).animate().alpha(1f).setDuration(500).start()
-        view.findViewById<View>(R.id.title_text).animate().alpha(1f).setDuration(500).setStartDelay(200).start()
-        view.findViewById<View>(R.id.back_button).animate().alpha(1f).setDuration(500).setStartDelay(400).start()
-        view.findViewById<View>(R.id.title_input_layout).animate().alpha(1f).setDuration(500).setStartDelay(600).start()
-        view.findViewById<View>(R.id.content_input_layout).animate().alpha(1f).setDuration(500).setStartDelay(800).start()
-        view.findViewById<View>(R.id.category_spinner).animate().alpha(1f).setDuration(500).setStartDelay(1000).start()
-        view.findViewById<View>(R.id.save_button).animate().alpha(1f).setDuration(500).setStartDelay(1200).start()
-        view.findViewById<View>(R.id.delete_button).animate().alpha(1f).setDuration(500).setStartDelay(1400).start()
+        view.findViewById<View>(R.id.title_text).animate().alpha(1f).setDuration(500)
+            .setStartDelay(200).start()
+        view.findViewById<View>(R.id.back_button).animate().alpha(1f).setDuration(500)
+            .setStartDelay(400).start()
+        view.findViewById<View>(R.id.title_input_layout).animate().alpha(1f).setDuration(500)
+            .setStartDelay(600).start()
+        view.findViewById<View>(R.id.content_input_layout).animate().alpha(1f).setDuration(500)
+            .setStartDelay(800).start()
+        view.findViewById<View>(R.id.category_spinner).animate().alpha(1f).setDuration(500)
+            .setStartDelay(1000).start()
+        view.findViewById<View>(R.id.save_button).animate().alpha(1f).setDuration(500)
+            .setStartDelay(1200).start()
+        view.findViewById<View>(R.id.delete_button).animate().alpha(1f).setDuration(500)
+            .setStartDelay(1400).start()
     }
 
     private fun saveNote(note: Note) {
@@ -245,12 +270,17 @@ class EditNoteFragment : Fragment() {
             } catch (e: Exception) {
                 launch(Dispatchers.Main) {
                     saveProgress.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Ошибка сохранения: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Ошибка сохранения: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
 
     }
+
     private fun deleteNote(note: Note) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -278,7 +308,11 @@ class EditNoteFragment : Fragment() {
             } catch (e: Exception) {
                 launch(Dispatchers.Main) {
                     saveProgress.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Ошибка удаления: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Ошибка удаления: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

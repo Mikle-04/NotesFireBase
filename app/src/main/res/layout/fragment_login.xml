@@ -48,7 +48,7 @@
         app:layout_constraintTop_toBottomOf="@id/title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="150dp"
         app:cornerRadius="8dp"
         app:icon="@drawable/ic_google"
         app:iconTint="@null"

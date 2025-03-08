@@ -31,6 +31,10 @@ class NoteAdapter(private var notes: List<Note>) : RecyclerView.Adapter<NoteAdap
         holder.category.text = note.category
         holder.content.text = note.content
         holder.timestamp.text = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(note.timestamp)
+        holder.itemView.setOnClickListener {
+            val action = MainFragmentDirections.actionMainFragmentToEditNoteFragment(note.id)
+            holder.itemView.findNavController().navigate(action)
+        }
     }
 
     override fun getItemCount(): Int = notes.size
